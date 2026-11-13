@@ -110,8 +110,8 @@ or go nuts and...
 - `-q`: Print the rule applied on the current workspace to STDOUT, but don't change anything. If there isn't an active rule for the current workspace, it returns a tiling rule. The returned string is a valid Hyprland window rule configuration line, like so:
 ```shell
 # (On workspace 2...)
-$ ./htt ~/.cache/htt/rules -q
-windowrule = tile on, match:workspace 2
+$ ./htt ~/.config/hypr/htt_rules.lua -q
+hl.window_rule({ match = { workspace = "2" }, tile = true })
 ```
 Potential applications for this are mainly scripts, like my waybar module here:
 ![wayland module showcase](assets/waybar_module.gif)
@@ -122,6 +122,21 @@ Potential applications for this are mainly scripts, like my waybar module here:
 - If the configuration contains existing rules, this should still work, but your existing configuration will probably get a bit messy, syntax-wise. I advise against it.
 
 # Integration with Hyprland
+For Hyprland 0.55 and newer, create an empty Lua rule file and add these lines to `~/.config/hypr/hyprland.lua`:
+
+```sh
+touch ~/.config/hypr/htt_rules.lua
+```
+
+```lua
+require("htt_rules")
+hl.bind("SUPER + T", hl.dsp.exec_cmd("htt ~/.config/hypr/htt_rules.lua"))
+```
+
+To move a window while applying the destination workspace's mode, use `htt ~/.config/hypr/htt_rules.lua -m 2` in a bind.
+
+The examples below apply to Hyprland 0.54 and earlier only.
+
 1. Whatever configuration path you specify, include it in your Hyprland config, like so:
    `/path/to/your/hyprland.conf`:
    ```conf

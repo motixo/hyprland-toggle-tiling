@@ -2,6 +2,7 @@
 #define WINDOW_RULE_H
 
 #include <string>
+#include <optional>
 
 class WindowRule {
     public:
@@ -14,7 +15,7 @@ class WindowRule {
 
         std::string toString();
 
-        static WindowRule parse(std::string);
+        static std::optional<WindowRule> parse(const std::string&);
 };
 
 #endif

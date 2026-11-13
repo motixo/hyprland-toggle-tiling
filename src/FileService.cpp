@@ -22,14 +22,16 @@ void FileService::createOrOverwriteFile(std::string path, std::string content) {
 };
 
 void FileService::appendToFile(std::string path, std::string content) {
-    bool fileNotEmpty = FileService::doesNonEmptyFileExist(path);
-    std::stringstream cmd;
-    if (fileNotEmpty) {
-        cmd << ECHO_PATH << " \"" << "\n" << content << "\" >> " << path;
-    } else {
-        cmd << ECHO_PATH << " \"" << content << "\" >> " << path;
+    std::ifstream input(path, std::ios::binary | std::ios::ate);
+    const bool nonempty = input.good() && input.tellg() > 0;
+    bool needsNewline = false;
+    if (nonempty) {
+        input.seekg(-1, std::ios::end);
+        needsNewline = input.get() != '\n';
     }
-    ShellService::exec(cmd.str().c_str());
+    std::ofstream output(path, std::ios::app);
+    if (needsNewline) output << '\n';
+    output << content << '\n';
 };
 
 void FileService::deleteNthLine(std::string path, int n) {
@@ -43,12 +45,7 @@ void FileService::deleteNthLine(std::string path, int n) {
     lines.erase(lines.begin() + n);
 
     std::ofstream file(path, std::ios::trunc);
-    for (size_t i = 0; i < lines.size(); ++i) {
-        file << lines[i];
-        if (i != lines.size() - 1) {
-            file << '\n';
-        }
-    }
+    for (const auto& line : lines) file << line << '\n';
 }
 
 std::vector<std::string> FileService::readLines(std::string path) {

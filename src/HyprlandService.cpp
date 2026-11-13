@@ -80,19 +80,20 @@ std::list<WindowRule> HyprlandService::getWindowRules() {
   std::list<WindowRule> rules;
 
   for (auto &line : FileService::readLines(getConfigFilePath())) {
-	rules.push_back(WindowRule::parse(line));
+	if (auto rule = WindowRule::parse(line)) rules.push_back(*rule);
   }
 
   return rules;
 };
 
 void HyprlandService::setClientFloating(Client c) {
-  ShellService::exec(HYPRCTL_BINARY " dispatch setfloating address:" +
-					 c.address);
+  ShellService::exec(HYPRCTL_BINARY " eval 'hl.dispatch(hl.dsp.window.float({ window = \"address:" +
+                     c.address + "\", action = \"set\" }))'");
 };
 
 void HyprlandService::setClientTiled(Client c) {
-  ShellService::exec(HYPRCTL_BINARY " dispatch settiled address:" + c.address);
+  ShellService::exec(HYPRCTL_BINARY " eval 'hl.dispatch(hl.dsp.window.float({ window = \"address:" +
+                     c.address + "\", action = \"unset\" }))'");
 }
 
 // on = true -> creates a window rule to ENABLE floating mode for currently
@@ -124,12 +125,12 @@ HyprlandService::findConflictingRule(WindowRule subject) {
 };
 
 void HyprlandService::removeRule(WindowRule rule) {
-  std::list<WindowRule> rules = getWindowRules();
+  auto lines = FileService::readLines(getConfigFilePath());
   int index = 0;
   int foundIndex = -1;
 
-  for (auto &it : rules) {
-	if (it.toString() == rule.toString()) {
+  for (auto &line : lines) {
+	if (line == rule.toString()) {
 	  foundIndex = index;
 	  break;
 	}
@@ -180,8 +181,8 @@ void HyprlandService::moveToWorkspace(int workspaceId) {
 	setClientTiled(getActiveClient());
   }
 
-  ShellService::exec(HYPRCTL_BINARY " dispatch movetoworkspace " +
-					 std::to_string(workspaceId));
+  ShellService::exec(HYPRCTL_BINARY " eval 'hl.dispatch(hl.dsp.window.move({ workspace = \"" +
+                     std::to_string(workspaceId) + "\" }))'");
 }
 
 void HyprlandService::toggleFloating() {
